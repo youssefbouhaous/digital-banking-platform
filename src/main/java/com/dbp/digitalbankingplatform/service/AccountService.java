@@ -3,9 +3,7 @@ package com.dbp.digitalbankingplatform.service;
 import com.dbp.digitalbankingplatform.dto.request.CreateAccountRequest;
 import com.dbp.digitalbankingplatform.model.Account;
 import com.dbp.digitalbankingplatform.repository.AccountRepository;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -44,28 +42,6 @@ public class AccountService {
         if (optionalAccount.isPresent())
         return optionalAccount.get().getBalance();
         else throw new RuntimeException("Account not found");
-    }
-
-    @Transactional
-    public boolean transfer(UUID idSender,UUID idReceiver,BigDecimal amount){
-        if(amount==null || amount.compareTo(BigDecimal.ZERO)<=0) throw new RuntimeException("amount is not positive or null");
-        Optional<Account> accountSenderOpt = accountRepository.findById(idSender);
-        Optional<Account> accountReceiverOpt = accountRepository.findById(idReceiver);
-        if (accountReceiverOpt.isEmpty() || accountSenderOpt.isEmpty()){
-            throw new RuntimeException("Receiver or Sender account not found");
-        }
-        Account accountSender = accountSenderOpt.get();
-        Account accountReceiver = accountReceiverOpt.get();
-        if (accountSender.getBalance().compareTo(amount)>=0){
-            accountSender.setBalance(accountSender.getBalance().subtract(amount));
-            accountReceiver.setBalance(accountReceiver.getBalance().add(amount));
-            accountRepository.save(accountSender);
-            accountRepository.save(accountReceiver);
-            return true;
-        }else{
-            System.out.println("Amount is not enough");
-            return false;
-        }
     }
 
     public boolean addBalance(UUID uuid,BigDecimal amount){
