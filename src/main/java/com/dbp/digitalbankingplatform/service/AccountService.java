@@ -29,9 +29,9 @@ public class AccountService {
 
     public Account create(CreateAccountRequest createAccountRequest){
         Account account = new Account();
-        account.setUsername(createAccountRequest.userName());
-        account.setFirstName(createAccountRequest.firstName());
-        account.setLastName(createAccountRequest.lastName());
+        account.setUsername(createAccountRequest.userName().strip());
+        account.setFirstName(createAccountRequest.firstName().strip());
+        account.setLastName(createAccountRequest.lastName().strip());
         return accountRepository.save(account);
     }
 

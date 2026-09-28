@@ -2,8 +2,8 @@ package com.dbp.digitalbankingplatform.controller;
 
 import com.dbp.digitalbankingplatform.dto.request.CreateAccountRequest;
 import com.dbp.digitalbankingplatform.dto.response.AccountResponse;
-import com.dbp.digitalbankingplatform.model.Account;
 import com.dbp.digitalbankingplatform.service.AccountService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +28,7 @@ public class AccountController {
     }
 
     @PostMapping
-    public ResponseEntity<AccountResponse> create(@RequestBody CreateAccountRequest createAccountRequest){
+    public ResponseEntity<AccountResponse> create(@Valid @RequestBody CreateAccountRequest createAccountRequest){
         AccountResponse accountSaved = new AccountResponse(accountService.create(createAccountRequest));
         return ResponseEntity.status(HttpStatus.CREATED).body(accountSaved);
     }
