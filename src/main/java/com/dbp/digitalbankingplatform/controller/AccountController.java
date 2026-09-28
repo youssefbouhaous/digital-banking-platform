@@ -1,11 +1,15 @@
 package com.dbp.digitalbankingplatform.controller;
 
+import com.dbp.digitalbankingplatform.dto.request.CreateAccountRequest;
+import com.dbp.digitalbankingplatform.dto.response.AccountResponse;
 import com.dbp.digitalbankingplatform.model.Account;
 import com.dbp.digitalbankingplatform.service.AccountService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -14,6 +18,7 @@ import java.util.UUID;
  * @author Youssef Bouhaous
  * @since 9/25/26
  */
+@RequestMapping("/api/accounts")
 @RestController
 public class AccountController {
     private final AccountService accountService;
@@ -23,19 +28,19 @@ public class AccountController {
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Account account){
-        Account accountSaved = accountService.create(account);
-        return ResponseEntity.ok(accountSaved);
+    public ResponseEntity<AccountResponse> create(@RequestBody CreateAccountRequest createAccountRequest){
+        AccountResponse accountSaved = new AccountResponse(accountService.create(createAccountRequest));
+        return ResponseEntity.status(HttpStatus.CREATED).body(accountSaved);
     }
 
     @GetMapping
-    public ResponseEntity<?> getAll(){
-        return ResponseEntity.ok(accountService.findAll());
+    public ResponseEntity<List<AccountResponse>> getAll(){
+        return ResponseEntity.ok(AccountResponse.fromAccounts(accountService.findAll()));
     }
 
-    @GetMapping("balance/{uuid}")
-    public ResponseEntity<?> getBalance(@PathVariable UUID uuid){
-        return ResponseEntity.ok(accountService.checkBalance(uuid));
+    @GetMapping("{id}/balance")
+    public ResponseEntity<BigDecimal> getBalance(@PathVariable UUID id){
+        return ResponseEntity.ok(accountService.checkBalance(id));
     }
 
 }

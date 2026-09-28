@@ -1,5 +1,6 @@
 package com.dbp.digitalbankingplatform.service;
 
+import com.dbp.digitalbankingplatform.dto.request.CreateAccountRequest;
 import com.dbp.digitalbankingplatform.model.Account;
 import com.dbp.digitalbankingplatform.repository.AccountRepository;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,11 @@ public class AccountService {
         this.accountRepository = accountRepository;
     }
 
-    public Account create(Account account){
+    public Account create(CreateAccountRequest createAccountRequest){
+        Account account = new Account();
+        account.setUsername(createAccountRequest.userName());
+        account.setFirstName(createAccountRequest.firstName());
+        account.setLastName(createAccountRequest.lastName());
         return accountRepository.save(account);
     }
 

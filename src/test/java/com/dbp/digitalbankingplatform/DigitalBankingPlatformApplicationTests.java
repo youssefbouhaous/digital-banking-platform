@@ -1,5 +1,6 @@
 package com.dbp.digitalbankingplatform;
 
+import com.dbp.digitalbankingplatform.dto.request.CreateAccountRequest;
 import com.dbp.digitalbankingplatform.model.Account;
 import com.dbp.digitalbankingplatform.service.AccountService;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 class DigitalBankingPlatformApplicationTests {
@@ -23,11 +25,9 @@ class DigitalBankingPlatformApplicationTests {
 
     @Test
     void testTransfer(){
-        Account sender = new Account();
-        Account receiver = new Account();
-        sender.setBalance(new BigDecimal(1000));
-        accountService.create(sender);
-        accountService.create(receiver);
-        assertEquals(true, accountService.transfer(sender.getId(),receiver.getId(),new BigDecimal(100)));
+        Account sender = accountService.create(new CreateAccountRequest("","",""));
+        Account receiver = accountService.create(new CreateAccountRequest("","",""));
+        accountService.addBalance(sender.getId(),new BigDecimal(1000));
+        assertTrue(accountService.transfer(sender.getId(), receiver.getId(), new BigDecimal(100)));
     }
 }
