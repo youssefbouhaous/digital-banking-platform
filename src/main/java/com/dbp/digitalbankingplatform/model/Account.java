@@ -32,4 +32,5 @@ public class Account {
     private BigDecimal balance = new BigDecimal(0);
     @Version
     private Long version;
+    private AccountState state = AccountState.FROZEN;
 }
