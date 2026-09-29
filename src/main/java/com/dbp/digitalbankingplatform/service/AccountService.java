@@ -1,8 +1,14 @@
 package com.dbp.digitalbankingplatform.service;
 
 import com.dbp.digitalbankingplatform.dto.request.CreateAccountRequest;
+import com.dbp.digitalbankingplatform.dto.response.TransferByAccountResponse;
+import com.dbp.digitalbankingplatform.dto.response.TransferResponse;
+import com.dbp.digitalbankingplatform.exception.AccountNotFoundException;
 import com.dbp.digitalbankingplatform.model.Account;
 import com.dbp.digitalbankingplatform.repository.AccountRepository;
+import com.dbp.digitalbankingplatform.repository.TransferRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -20,9 +26,10 @@ import java.util.UUID;
 @Service
 public class AccountService {
     private final AccountRepository accountRepository;
-
-    public AccountService(AccountRepository accountRepository) {
+    private final TransferRepository transferRepository;
+    public AccountService(AccountRepository accountRepository, TransferRepository transferRepository) {
         this.accountRepository = accountRepository;
+        this.transferRepository = transferRepository;
     }
 
     public Account create(CreateAccountRequest createAccountRequest){
@@ -69,5 +76,20 @@ public class AccountService {
                 return false;
             }
         }else throw new RuntimeException("Account not found");
+    }
+
+
+    public Page<TransferByAccountResponse> historyByAccount(UUID id,Pageable pageable){
+        Optional<Account> accountOpt = accountRepository.findById(id);
+        if (accountOpt.isEmpty())throw  new AccountNotFoundException("Account not found");
+        Account account=accountOpt.get();
+        return transferRepository
+                .findAllBySenderOrReceiverOrderByCreatedAtDesc(account, account, pageable)
+                .map(transfer -> new TransferByAccountResponse(
+                        new TransferResponse(transfer),
+                        transfer.getReceiver().getId().equals(id)
+                                ? "INCOMING"
+                                : "OUTGOING"
+                ));
     }
 }

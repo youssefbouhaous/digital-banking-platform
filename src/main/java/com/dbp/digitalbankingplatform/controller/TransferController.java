@@ -5,15 +5,11 @@ import com.dbp.digitalbankingplatform.dto.response.TransferResponse;
 import com.dbp.digitalbankingplatform.exception.AccountNotFoundException;
 import com.dbp.digitalbankingplatform.exception.InsufficientFundsException;
 import com.dbp.digitalbankingplatform.exception.InvalidTransferException;
-import com.dbp.digitalbankingplatform.service.AccountService;
 import com.dbp.digitalbankingplatform.service.TransferService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * TransferController

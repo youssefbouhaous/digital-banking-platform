@@ -9,7 +9,6 @@ import com.dbp.digitalbankingplatform.model.Transfer;
 import com.dbp.digitalbankingplatform.repository.AccountRepository;
 import com.dbp.digitalbankingplatform.repository.TransferRepository;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

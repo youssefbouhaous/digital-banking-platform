@@ -2,8 +2,13 @@ package com.dbp.digitalbankingplatform.controller;
 
 import com.dbp.digitalbankingplatform.dto.request.CreateAccountRequest;
 import com.dbp.digitalbankingplatform.dto.response.AccountResponse;
+import com.dbp.digitalbankingplatform.dto.response.TransferByAccountResponse;
+import com.dbp.digitalbankingplatform.exception.AccountNotFoundException;
 import com.dbp.digitalbankingplatform.service.AccountService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,4 +48,15 @@ public class AccountController {
         return ResponseEntity.ok(accountService.checkBalance(id));
     }
 
+
+    @GetMapping("/{accountId}/transfers")
+    public ResponseEntity<?> historyTransferByAccount(@PathVariable UUID accountId,  @PageableDefault(page = 0, size = 20) Pageable pageable){
+        try {
+            Page<TransferByAccountResponse> accountResponses = accountService.historyByAccount(accountId,pageable);
+            return ResponseEntity.ok(accountResponses);
+        }
+        catch (AccountNotFoundException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
 }
