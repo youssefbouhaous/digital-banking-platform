@@ -49,7 +49,7 @@ public class AccountController {
     }
 
 
-    @GetMapping("/{accountId}/transfers")
+    @GetMapping("{accountId}/transfers")
     public ResponseEntity<?> historyTransferByAccount(@PathVariable UUID accountId,  @PageableDefault(page = 0, size = 20) Pageable pageable){
         try {
             Page<TransferByAccountResponse> accountResponses = accountService.historyByAccount(accountId,pageable);
