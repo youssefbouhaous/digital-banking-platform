@@ -30,6 +30,7 @@ public class AccountLifecycleService {
         if(accountOpt.isEmpty())throw new AccountNotFoundException("Account not found");
         Account account = accountOpt.get();
         account.setState(state);
+        accountRepository.save(account);
         return account;
     }
 
@@ -44,6 +45,7 @@ public class AccountLifecycleService {
         Optional<Account> accountOpt = accountRepository.findById(id);
         if(accountOpt.isEmpty())throw new AccountNotFoundException("Account not found");
         Account account = accountOpt.get();
+        accountRepository.save(account);
         return account.getState();
     }
 }

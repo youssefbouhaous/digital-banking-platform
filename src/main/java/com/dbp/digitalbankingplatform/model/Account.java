@@ -33,4 +33,7 @@ public class Account {
     @Version
     private Long version;
     private AccountState state = AccountState.FROZEN;
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
 }
