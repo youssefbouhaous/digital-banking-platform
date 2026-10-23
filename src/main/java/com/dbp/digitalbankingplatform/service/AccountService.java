@@ -5,11 +5,16 @@ import com.dbp.digitalbankingplatform.dto.response.TransferByAccountResponse;
 import com.dbp.digitalbankingplatform.dto.response.TransferResponse;
 import com.dbp.digitalbankingplatform.exception.AccountNotFoundException;
 import com.dbp.digitalbankingplatform.model.Account;
+import com.dbp.digitalbankingplatform.model.AccountOperation;
+import com.dbp.digitalbankingplatform.model.OperationType;
+import com.dbp.digitalbankingplatform.model.Transfer;
+import com.dbp.digitalbankingplatform.repository.AccountOperationRepository;
 import com.dbp.digitalbankingplatform.repository.AccountRepository;
 import com.dbp.digitalbankingplatform.repository.TransferRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -27,9 +32,11 @@ import java.util.UUID;
 public class AccountService {
     private final AccountRepository accountRepository;
     private final TransferRepository transferRepository;
-    public AccountService(AccountRepository accountRepository, TransferRepository transferRepository) {
+    private final AccountOperationRepository accountOperationRepository;
+    public AccountService(AccountRepository accountRepository, TransferRepository transferRepository, AccountOperationRepository accountOperationRepository) {
         this.accountRepository = accountRepository;
         this.transferRepository = transferRepository;
+        this.accountOperationRepository = accountOperationRepository;
     }
 
     public Account create(CreateAccountRequest createAccountRequest){
@@ -51,6 +58,7 @@ public class AccountService {
         else throw new RuntimeException("Account not found");
     }
 
+    @Transactional
     public boolean addBalance(UUID uuid,BigDecimal amount){
         if(amount==null || amount.compareTo(BigDecimal.ZERO)<=0) throw new RuntimeException("amount is not positive or null");
         Optional<Account> accountOpt = accountRepository.findById(uuid);
@@ -58,10 +66,17 @@ public class AccountService {
             Account account = accountOpt.get();
             account.setBalance(account.getBalance().add(amount));
             accountRepository.save(account);
+            AccountOperation accountOperation = new AccountOperation();
+            accountOperation.setAccount(account);
+            accountOperation.setType(OperationType.DEPOSIT);
+            accountOperation.setAmount(amount);
+            accountOperation.setBalanceAfter(account.getBalance());
+            accountOperationRepository.save(accountOperation);
             return true;
         }else throw new RuntimeException("Account not found");
     }
 
+    @Transactional
     public boolean subBalance(UUID uuid, BigDecimal amount){
         if(amount==null || amount.compareTo(BigDecimal.ZERO)<=0) throw new RuntimeException("amount is not positive or null");
         Optional<Account> accountOpt = accountRepository.findById(uuid);
@@ -70,6 +85,12 @@ public class AccountService {
             if (account.getBalance().compareTo(amount)>=0){
                 account.setBalance(account.getBalance().subtract(amount));
                 accountRepository.save(account);
+                AccountOperation accountOperation = new AccountOperation();
+                accountOperation.setAccount(account);
+                accountOperation.setType(OperationType.WITHDRAWAL);
+                accountOperation.setAmount(amount);
+                accountOperation.setBalanceAfter(account.getBalance());
+                accountOperationRepository.save(accountOperation);
                 return true;
             }
             else{
