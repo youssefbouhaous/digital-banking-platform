@@ -3,9 +3,13 @@ package com.dbp.digitalbankingplatform.service;
 import com.dbp.digitalbankingplatform.dto.request.CreateAccountRequest;
 import com.dbp.digitalbankingplatform.dto.response.TransferByAccountResponse;
 import com.dbp.digitalbankingplatform.dto.response.TransferResponse;
+import com.dbp.digitalbankingplatform.exception.AccountNotActiveException;
 import com.dbp.digitalbankingplatform.exception.AccountNotFoundException;
+import com.dbp.digitalbankingplatform.exception.InsufficientFundsException;
+import com.dbp.digitalbankingplatform.exception.InvalidTransferException;
 import com.dbp.digitalbankingplatform.model.Account;
 import com.dbp.digitalbankingplatform.model.AccountOperation;
+import com.dbp.digitalbankingplatform.model.AccountState;
 import com.dbp.digitalbankingplatform.model.OperationType;
 import com.dbp.digitalbankingplatform.model.Transfer;
 import com.dbp.digitalbankingplatform.repository.AccountOperationRepository;
@@ -55,15 +59,16 @@ public class AccountService {
         Optional<Account> optionalAccount = accountRepository.findById(uuid);
         if (optionalAccount.isPresent())
         return optionalAccount.get().getBalance();
-        else throw new RuntimeException("Account not found");
+        else throw new AccountNotFoundException("Account not found");
     }
 
     @Transactional
     public boolean addBalance(UUID uuid,BigDecimal amount){
-        if(amount==null || amount.compareTo(BigDecimal.ZERO)<=0) throw new RuntimeException("amount is not positive or null");
+        if(amount==null || amount.compareTo(BigDecimal.ZERO)<=0) throw new InvalidTransferException("amount is not positive or null");
         Optional<Account> accountOpt = accountRepository.findById(uuid);
         if (accountOpt.isPresent()){
             Account account = accountOpt.get();
+            if(account.getState()!= AccountState.ACTIVE) throw new AccountNotActiveException("Account not active");
             account.setBalance(account.getBalance().add(amount));
             accountRepository.save(account);
             AccountOperation accountOperation = new AccountOperation();
@@ -73,15 +78,16 @@ public class AccountService {
             accountOperation.setBalanceAfter(account.getBalance());
             accountOperationRepository.save(accountOperation);
             return true;
-        }else throw new RuntimeException("Account not found");
+        }else throw new AccountNotFoundException("Account not found");
     }
 
     @Transactional
     public boolean subBalance(UUID uuid, BigDecimal amount){
-        if(amount==null || amount.compareTo(BigDecimal.ZERO)<=0) throw new RuntimeException("amount is not positive or null");
+        if(amount==null || amount.compareTo(BigDecimal.ZERO)<=0) throw new InvalidTransferException("amount is not positive or null");
         Optional<Account> accountOpt = accountRepository.findById(uuid);
         if (accountOpt.isPresent()){
             Account account = accountOpt.get();
+            if(account.getState()!= AccountState.ACTIVE) throw new AccountNotActiveException("Account not active");
             if (account.getBalance().compareTo(amount)>=0){
                 account.setBalance(account.getBalance().subtract(amount));
                 accountRepository.save(account);
@@ -94,9 +100,9 @@ public class AccountService {
                 return true;
             }
             else{
-                return false;
+                throw new InsufficientFundsException("insufficient funds");
             }
-        }else throw new RuntimeException("Account not found");
+        }else throw new AccountNotFoundException("Account not found");
     }
 
 
@@ -112,5 +118,11 @@ public class AccountService {
                                 ? "INCOMING"
                                 : "OUTGOING"
                 ));
+    }
+
+    public Page<AccountOperation> operationsByAccount(UUID id,Pageable pageable){
+        Optional<Account> accountOpt = accountRepository.findById(id);
+        if (accountOpt.isEmpty())throw  new AccountNotFoundException("Account not found");
+        return accountOperationRepository.findAllByAccountOrderByCreatedAtDesc(accountOpt.get(), pageable);
     }
 }

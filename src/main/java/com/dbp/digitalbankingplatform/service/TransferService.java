@@ -1,10 +1,12 @@
 package com.dbp.digitalbankingplatform.service;
 
 import com.dbp.digitalbankingplatform.dto.request.TransferRequest;
+import com.dbp.digitalbankingplatform.exception.AccountNotActiveException;
 import com.dbp.digitalbankingplatform.exception.AccountNotFoundException;
 import com.dbp.digitalbankingplatform.exception.InsufficientFundsException;
 import com.dbp.digitalbankingplatform.exception.InvalidTransferException;
 import com.dbp.digitalbankingplatform.model.Account;
+import com.dbp.digitalbankingplatform.model.AccountState;
 import com.dbp.digitalbankingplatform.model.Transfer;
 import com.dbp.digitalbankingplatform.repository.AccountRepository;
 import com.dbp.digitalbankingplatform.repository.TransferRepository;
@@ -45,6 +47,9 @@ public class TransferService {
         }
         Account accountSender = accountSenderOpt.get();
         Account accountReceiver = accountReceiverOpt.get();
+        if(accountReceiver.getState()!= AccountState.ACTIVE || accountSender.getState() != AccountState.ACTIVE){
+            throw new AccountNotActiveException("Receiver or Sender account not active");
+        }
         if (accountSender.getBalance().compareTo(amount)>=0){
             accountSender.setBalance(accountSender.getBalance().subtract(amount));
             accountReceiver.setBalance(accountReceiver.getBalance().add(amount));

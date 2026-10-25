@@ -2,6 +2,7 @@ package com.dbp.digitalbankingplatform.controller;
 
 import com.dbp.digitalbankingplatform.dto.request.TransferRequest;
 import com.dbp.digitalbankingplatform.dto.response.TransferResponse;
+import com.dbp.digitalbankingplatform.exception.AccountNotActiveException;
 import com.dbp.digitalbankingplatform.exception.AccountNotFoundException;
 import com.dbp.digitalbankingplatform.exception.InsufficientFundsException;
 import com.dbp.digitalbankingplatform.exception.InvalidTransferException;
@@ -40,6 +41,9 @@ public class TransferController {
         }
         catch (InvalidTransferException e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+        catch (AccountNotActiveException e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
 }

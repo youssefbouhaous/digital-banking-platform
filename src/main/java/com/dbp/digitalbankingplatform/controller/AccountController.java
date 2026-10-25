@@ -3,7 +3,11 @@ package com.dbp.digitalbankingplatform.controller;
 import com.dbp.digitalbankingplatform.dto.request.CreateAccountRequest;
 import com.dbp.digitalbankingplatform.dto.response.AccountResponse;
 import com.dbp.digitalbankingplatform.dto.response.TransferByAccountResponse;
+import com.dbp.digitalbankingplatform.exception.AccountNotActiveException;
 import com.dbp.digitalbankingplatform.exception.AccountNotFoundException;
+import com.dbp.digitalbankingplatform.exception.InsufficientFundsException;
+import com.dbp.digitalbankingplatform.exception.InvalidTransferException;
+import com.dbp.digitalbankingplatform.model.AccountOperation;
 import com.dbp.digitalbankingplatform.service.AccountService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -56,6 +60,46 @@ public class AccountController {
             return ResponseEntity.ok(accountResponses);
         }
         catch (AccountNotFoundException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("{id}/deposit")
+    public ResponseEntity<?> deposit(@PathVariable UUID id,@RequestBody BigDecimal amount){
+        try {
+            accountService.addBalance(id,amount);
+            return ResponseEntity.accepted().build();
+        } catch (AccountNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }catch (AccountNotActiveException e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }catch (InvalidTransferException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("{id}/withdraw")
+    public ResponseEntity<?> withdraw(@PathVariable UUID id,@RequestBody BigDecimal amount){
+        try {
+            accountService.subBalance(id,amount);
+            return ResponseEntity.accepted().build();
+        } catch (AccountNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }catch (AccountNotActiveException e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }catch (InsufficientFundsException e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }catch (InvalidTransferException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("{id}/operations")
+    public ResponseEntity<?> getOperationsHistory(@PathVariable UUID id,@PageableDefault(page = 0, size = 20) Pageable pageable){
+        try {
+            Page<AccountOperation> operations = accountService.operationsByAccount(id,pageable);
+            return ResponseEntity.ok().body(operations);
+        } catch (AccountNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
